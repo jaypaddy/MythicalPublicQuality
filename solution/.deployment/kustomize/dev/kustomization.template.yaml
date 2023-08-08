@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ./deployment.yaml
+- ../base
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+- name: mythicalqualityserver-config
+  namespace: mq-ns
+  envs:
+  - mythicalqualityserverconfig.env
+- name: mythicalqualityclient-config
+  namespace: mq-ns
+  envs:
+  - mythicalqualityclientconfig.env  
+
+# https://dev.to/stack-labs/manage-your-secrets-in-git-with-sops-for-kubectl-kustomize-45b5
+#secretGenerator:
+#- files:
+#  - ./secret-docker-reg.json
+#  name: regcred
+#  type: kubernetes.io/dockerconfigjson
+#  namespace: mq-ns
+
+images:
+- name: mythicalcon.azurecr.io/quality/qualityserver:latest
+  newName: mythicalcon.azurecr.io/quality/qualityserver
+  newTag: "IMAGE_TAG"
+- name: mythicalcon.azurecr.io/quality/qualityclient:latest
+  newName: mythicalcon.azurecr.io/quality/qualityclient
+  newTag: "IMAGE_TAG"  
+commonLabels:
+  app: "mythicalquality"
+  appversion: "IMAGE_TAG"
+  environment: "DEV"
+  line: "FM407"
+  plant: "MYTHICALEDGE"
+
+

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mq-ns
+  labels:
+    name: mythicalquality
+---
+apiVersion: v1
+data:
+  .dockerconfigjson: ACRPULLDOCKERREGISTRYCBASE64
+kind: Secret
+metadata:
+  name: mythicalconpull
+  namespace: mq-ns
+  labels:
+    name: mythicalquality
+type: kubernetes.io/dockerconfigjson
+---

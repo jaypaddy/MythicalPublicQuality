@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appname }}
+  labels: {{ .Values.labels | toYaml | nindent 4 }}
+  annotations: {{ .Values.annotations | toYaml | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{ .Values.selectorLabels | toYaml | nindent 6 }}
+  template:
+    metadata:
+      annotations: {{ .Values.annotations | toYaml | nindent 8 }}
+      labels: {{ .Values.selectorLabels | toYaml | nindent 8 }}
+    spec:
+      containers:
+        - name: subscriber
+          image: "{{ .Values.image.repository }}/qualityhttpserver:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 9600
+              name: metrics
+          env:
+            - name: LOGGING_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  key: LOGGING_LEVEL
+                  name: mythicalquality-config
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: APP_NAME
+                  name: mythicalquality-config
+            - name: SCOPE_KEYS
+              valueFrom:
+                configMapKeyRef:
+                  key: SCOPE_KEYS
+                  name: mythicalquality-config
+            - name: SCOPE_VALUES
+              valueFrom:
+                configMapKeyRef:
+                  key: SCOPE_VALUES
+                  name: mythicalquality-config
+            - name: PROMETHEUS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PROMETHEUS_PORT
+                  name: mythicalquality-config
+            - name: SERVER_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVER_ADDR
+                  name: mythicalquality-config                  

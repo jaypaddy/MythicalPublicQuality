@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qualityserver
+  namespace: mq-ns
+  labels:
+    pod: qualityserver
+spec:
+  replicas: 1
+  selector:
+  template:
+    metadata:
+      labels:
+        pod: qualityserver
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/scheme: "http"
+        prometheus.io/path: "/"
+        prometheus.io/port: "9600"  
+
+    spec:
+      containers:
+      - name: qualityserver
+        image: mythicalcon.azurecr.io/quality/qualityserver:latest
+        imagePullPolicy: Always
+        env:
+        - name: LOGGING_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              key: LOGGING_LEVEL
+              name: mythicalqualityserver-config
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: APP_NAME
+              name: mythicalqualityserver-config
+        - name: SCOPE_KEYS
+          valueFrom:
+            configMapKeyRef:
+              key: SCOPE_KEYS
+              name: mythicalqualityserver-config
+        - name: SCOPE_VALUES
+          valueFrom:
+            configMapKeyRef:
+              key: SCOPE_VALUES
+              name: mythicalqualityserver-config
+        - name: PROMETHEUS_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: PROMETHEUS_PORT
+              name: mythicalqualityserver-config
+        - name: SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: SERVER_PORT
+              name: mythicalqualityserver-config              
+        ports:
+          - containerPort: 9600
+            name: metrics
+          - containerPort: 50051
+            name: server            
+      imagePullSecrets:
+          - name: mythicalconpull
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qualityclient
+  namespace: mq-ns
+spec:
+  replicas: 1
+  selector:
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/scheme: "http"
+        prometheus.io/path: "/"
+        prometheus.io/port: "9600"  
+    spec:
+      containers:
+      - name: qualityclient
+        image: mythicalcon.azurecr.io/quality/qualityclient:latest
+        imagePullPolicy: Always
+        env:
+        - name: LOGGING_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              key: LOGGING_LEVEL
+              name: mythicalqualityclient-config
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: APP_NAME
+              name: mythicalqualityclient-config
+        - name: SCOPE_KEYS
+          valueFrom:
+            configMapKeyRef:
+              key: SCOPE_KEYS
+              name: mythicalqualityclient-config
+        - name: SCOPE_VALUES
+          valueFrom:
+            configMapKeyRef:
+              key: SCOPE_VALUES
+              name: mythicalqualityclient-config
+        - name: PROMETHEUS_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: PROMETHEUS_PORT
+              name: mythicalqualityclient-config
+        - name: SERVER_METHOD_URL
+          valueFrom:
+            configMapKeyRef:
+              key: SERVER_METHOD_URL
+              name: mythicalqualityclient-config         
+        - name: SLEEP_INTERVAL_SECS
+          valueFrom:
+            configMapKeyRef:
+              key: SLEEP_INTERVAL_SECS
+              name: mythicalqualityclient-config                      
+        ports:
+          - containerPort: 9600
+            name: metrics
+          - containerPort: 50051
+            name: server            
+      imagePullSecrets:
+          - name: mythicalconpull
